@@ -20,6 +20,9 @@ class Solution:
     def mergeKLists(self, lists: List[Optional[ListNode]]) -> Optional[ListNode]:
         if not lists or not any(lists):
             return None
+        if len(lists) == 1:
+            return lists[0]
+
         lists = [i for i in lists if i]
         root = ListNode(0, None)
         node = root
