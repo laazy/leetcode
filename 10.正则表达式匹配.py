@@ -6,27 +6,37 @@
 
 # @lc code=start
 class Solution:
+    cache = {}
     def match_star(self, s: str, p: str):
-        if s[0] != p[0] and p[0] != '.':
-            return ''
+        yield s
         for idx, i in enumerate(s):
-            if i == s[0]:
+            if i == p[0] or p[0] == '.':
                 yield s[idx+1:]
+            else:
+                break
 
     def isMatch(self, s: str, p: str) -> bool:
-        if not (s or p):
-            return True
-        if not p:
-            return False
-        if len(s) > 1 and len(p) > 1 and p[1] == '*':
+
+        # if not (s or p): # s == p == ''
+        #     return True
+        if not p:  # p == '', s != ''
+            return not s
+        # p != '', s != '', but p starts with '\s*'
+        if len(p) > 1 and p[1] == '*':
             for i in self.match_star(s, p[:2]):
-                if i and self.isMatch(i, p[2:]):
+                if self.isMatch(i, p[2:]):
                     return True
-        else:
-            return (p[0] == '.' or s[0] == p[0]) and self.isMatch(s[1:], p[1:])
+            return False
+        else: # normal p
+            return bool(s) and (p[0] == '.' or s[0] == p[0]) and self.isMatch(s[1:], p[1:])
             
 
 # @lc code=end
-# print(Solution().isMatch(s= "aa", p = "a"))
-# print(Solution().isMatch(s="aa", p="a*"))
-print(Solution().isMatch(s= "ab", p = ".*"))
+assert Solution().isMatch(s= "aa", p = "a") == False
+assert Solution().isMatch(s="aa", p="a*") == True
+assert Solution().isMatch(s= "ab", p = ".*") == True
+assert Solution().isMatch(s= "aab", p = "c*a*b") == True
+assert Solution().isMatch(s= "ab", p = ".*c") == False
+assert Solution().isMatch(s="aaa", p="ab*ac*a") == True
+assert Solution().isMatch(s="a", p="ab*") == True
+assert Solution().isMatch(s="aaa", p="aaaa") == False
