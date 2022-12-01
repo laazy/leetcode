@@ -6,8 +6,27 @@
 
 # @lc code=start
 class Solution:
-    cache = {}
+    def isMatch_dp(self, text, pattern):
+        memo = {}
 
+        def dp(i, j):
+            if (i, j) in memo:
+                return memo[i, j]
+            if j == len(pattern):
+                ans = i == len(text)
+            else:
+                first_match = i < len(text) and pattern[j] in {
+                    text[i], '.'}
+                if j+1 < len(pattern) and pattern[j+1] == '*':
+                    ans = dp(i, j+2) or first_match and dp(i+1, j)
+                else:
+                    ans = first_match and dp(i+1, j+1)
+            memo[i, j] = ans
+            return ans
+
+        return dp(0, 0)
+
+    cache = {}
 
     def isMatch2(self, s, p):
         # use cache
@@ -48,16 +67,16 @@ class Solution:
                 if self.isMatch(i, p[2:]):
                     return True
             return False
-        else: # normal p
+        else:  # normal p
             return bool(s) and (p[0] == '.' or s[0] == p[0]) and self.isMatch(s[1:], p[1:])
-            
+
 
 # @lc code=end
-assert Solution().isMatch(s= "aa", p = "a") == False
-assert Solution().isMatch(s="aa", p="a*") == True
-assert Solution().isMatch(s= "ab", p = ".*") == True
-assert Solution().isMatch(s= "aab", p = "c*a*b") == True
-assert Solution().isMatch(s= "ab", p = ".*c") == False
-assert Solution().isMatch(s="aaa", p="ab*ac*a") == True
-assert Solution().isMatch(s="a", p="ab*") == True
-assert Solution().isMatch(s="aaa", p="aaaa") == False
+assert Solution().isMatch3("aa", "a") == False
+assert Solution().isMatch3("aa", "a*") == True
+assert Solution().isMatch3("ab", ".*") == True
+assert Solution().isMatch3("aab", "c*a*b") == True
+assert Solution().isMatch3("ab", ".*c") == False
+assert Solution().isMatch3("aaa", "ab*ac*a") == True
+assert Solution().isMatch3("a", "ab*") == True
+assert Solution().isMatch3("aaa", "aaaa") == False
