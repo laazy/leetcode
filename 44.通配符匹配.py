@@ -10,7 +10,7 @@ from collections import defaultdict
 
 
 class Solution:
-    def isMatch(self, s: str, p: str) -> bool:
+    def isMatch2(self, s: str, p: str) -> bool:
         # memo = Memo()
         memo = {}
 
@@ -41,7 +41,7 @@ class Solution:
         # memo.dump('my')
         return ans
 
-    def isMatch2(self, s, p):
+    def isMatch(self, s, p):
         dp = [[False for _ in range(len(p)+1)] for i in range(len(s)+1)]
         # dp = Memo()
         # dp.data = defaultdict(bool)
@@ -59,6 +59,33 @@ class Solution:
                     dp[i][j] = dp[i-1][j] or dp[i][j-1]
         # dp.dump('dp')
         return dp[-1][-1]
+
+
+    def isMatch3(self, s, p):
+        """
+        :type s: str
+        :type p: str
+        :rtype: bool
+        """
+        transfer = {}
+        state = 0
+
+        for char in p:
+            if char == '*':
+                transfer[state, char] = state
+            else:
+                transfer[state, char] = state + 1
+                state += 1
+
+        accept = state
+        states = {0}
+
+        for char in s:
+            states = {transfer.get((at, token))
+                      for at in states if at is not None
+                      for token in (char, '*', '?')}
+
+        return accept in states
 
 
 # @lc code=end
