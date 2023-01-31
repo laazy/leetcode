@@ -23,8 +23,14 @@ class ThreadPool{
         // TODO: support passing function
         // TODO: support passing arbitrary arguments
         // TODO: support return arbitrary value
+        // TODO: thread has group
+        // TODO: run in new thread
         vector<int> apply(vector<int> &args){
-            return {1, 2, 3, 4, 5};
+            vector<int> ans;
+            for (auto i: args){
+                ans.push_back(foo(i));
+            }
+            return ans;
         }
 
         ThreadPool(size_t size){
