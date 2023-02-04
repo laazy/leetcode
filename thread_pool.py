@@ -39,11 +39,12 @@ class ThreadPool:
                 result.value = val
                 result.ready = True
 
-    def submit(self, func, *args, **kwargs):
+    def submit(self, func, *args, **kwargs) -> Result:
         with self._cond:
             result = Result()
             self._tasks.append((func, args, kwargs, result))
             self._cond.notify()
+            return result
 
     def exit(self):
         with self._cond:
@@ -59,10 +60,12 @@ if __name__ == "__main__":
     def foo(a=None):
         print(a, f' {time.ctime()}')
         time.sleep(1)
-
+        return a
+    ans = []
     for _ in range(5):
-        tp.submit(foo)
-
+        ans.append(tp.submit(foo))
     for i in range(5):
-        tp.submit(foo, i)
+        ans.append(tp.submit(foo, i))
     tp.exit()
+    for i in ans:
+        print(i.get())
