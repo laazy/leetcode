@@ -1,3 +1,9 @@
+# unrelated files
+data/
+*.lprof
+.infinity_trade
+test_code/
+
 # debug file
 *records.json
 
