@@ -1,3 +1,9 @@
+# ignore code and data
+infinity_trade*
+data/
+
+#
+
 # debug file
 *records.json
 a.out
