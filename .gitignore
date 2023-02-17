@@ -1,4 +1,5 @@
 # unrelated files
+infinity_trade*
 data/
 *.lprof
 .infinity_trade
@@ -6,6 +7,7 @@ test_code/
 
 # debug file
 *records.json
+a.out
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
