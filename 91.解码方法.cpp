@@ -33,21 +33,11 @@ class Solution {
         dp[0] = 1;
         dp[1] = 1;
         for (int i = 1; i < n; i++) {
-            // bool is_num = ;
             dp[i + 1] = 0;
             if (s[i] != '0')
                 dp[i + 1] += dp[i];
             if (isNum(s[i - 1], s[i]))
                 dp[i + 1] += dp[i - 1];
-            // if (s[i] == '0') {
-            //     if (is_num)
-            //         dp[i + 1] = dp[i - 1];
-            //     else
-            //         return 0;
-            // } else if (is_num)
-            //     dp[i + 1] = dp[i - 1] + dp[i];
-            // else
-            //     dp[i + 1] = dp[i];
         }
         return dp[n];
     }
