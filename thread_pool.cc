@@ -1,16 +1,14 @@
 #include <chrono>
 #include <condition_variable>
-#include <ctime>
+#include <cstdlib>
 #include <functional>
 #include <future>
 #include <iostream>
 #include <mutex>
 #include <queue>
-#include <string>
 #include <thread>
 #include <vector>
 
-// using namespace std;
 /**
  * 线程池：
  *   1. 固定 worker
@@ -24,46 +22,24 @@ std::mutex cout_mtx;
 class ThreadPool {
    public:
     ThreadPool(size_t size) {
-        // TODO: get min(cpu, size)
         terminated = false;
         pool_size = std::min(static_cast<size_t>(std::thread::hardware_concurrency()), size);
         threads.reserve(pool_size);
         for (size_t i = 0; i < pool_size; i++) {
-            std::cout << "Thread Pool: Try to create worker[" << i << "]\n";
             threads.push_back(std::thread([i, this]() {
                 while (true) {
                     std::function<void()> task;
                     {
-                        // {
-                        //     std::unique_lock<std::mutex> lock(cout_mtx);
-                        //     std::cout << "    Worker[" << i << "]: try to get lock\n";
-                        // }
                         std::unique_lock<std::mutex> lock(mtx);
                         while (tasks.size() == 0) {
                             if (terminated) {
-                                // {
-                                //     std::unique_lock<std::mutex>lock(cout_mtx);
-                                //     std::cout << "    Worker[" << i << "]: ready to return\n";
-                                // }
                                 return;
                             }
-                            // {
-                            //     std::unique_lock<std::mutex>lock(cout_mtx);
-                            //     std::cout << "    Worker[" << i << "]: before wait\n";
-                            // }
                             cv.wait(lock);
-                            // {
-                            //     std::unique_lock<std::mutex>lock(cout_mtx);
-                            //     std::cout << "    Worker[" << i << "]: after wait\n";
-                            // }
                         }
                         task = tasks.front();
                         tasks.pop();
                     }
-                    // {
-                    //     std::unique_lock<std::mutex>lock(cout_mtx);
-                    //     std::cout << "    Worker[" << i << "]: begin to execute task!\n";
-                    // }
                     task();
                 }
             }));
@@ -80,7 +56,7 @@ class ThreadPool {
         {
             std::unique_lock<std::mutex> lock(mtx);
             if (terminated) {
-                throw std::runtime_error("Thread pool has been stopped!");
+                throw std::runtime_error("Thread pool has been terminated!");
             }
             tasks.push([task]() -> void { (*task)(); });
         }
@@ -90,39 +66,16 @@ class ThreadPool {
 
     void close() {
         {
-            std::cout << "Thread Pool: try to close\n";
             std::unique_lock<std::mutex> lock(mtx);
             terminated = true;
-            std::cout << "Thread Pool: set flag\n";
         }
         cv.notify_all();
-        // for (auto& t : threads) {
-        for (int i = 0; i < threads.size(); i++) {
-            auto& t = threads[i];
-            std::cout << "Thread Pool: try close thread " << i << " \n";
+        for (auto& t : threads) {
             t.join();
-            std::cout << "Thread Pool: closed\n";
         }
     }
 
    private:
-    void worker() {
-        while (true) {
-            std::function<void()> task;
-            {
-                std::unique_lock<std::mutex> lock(mtx);
-                while (tasks.size() == 0) {
-                    cv.wait(lock);
-                    if (terminated)
-                        return;
-                }
-                task = tasks.front();
-                tasks.pop();
-            }
-            task();
-        }
-    }
-
     size_t pool_size;
     std::vector<std::thread> threads;
     std::queue<std::function<void()>> tasks;
@@ -132,41 +85,27 @@ class ThreadPool {
 };
 
 int foo(int arg) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    auto tmp = time(0);
-    {
-        std::unique_lock<std::mutex> lock(cout_mtx);
-        std::cout << "    Func: " << arg << " " << ctime(&tmp);
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(500 + std::rand() % 1000));
     return arg * arg;
+}
+
+int g(int a, int b) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(500 + std::rand() % 1000));
+    return a * b;
 }
 
 int main() {
     ThreadPool tp(32);
-    // std::vector<int> args{1, 2, 3, 4};
     std::vector<std::future<int>> ans;
-    auto tmp = time(0);
-    {
-        std::unique_lock<std::mutex> lock(cout_mtx);
-        std::cout << "Main: submit start! " << ctime(&tmp);
-    }
     for (int i = 0; i < 128; i++) {
         ans.push_back(tp.submit(foo, i));
     }
-    tmp = time(0);
-    {
-        std::unique_lock<std::mutex> lock(cout_mtx);
-        std::cout << "Main: submit complete! " << ctime(&tmp);
+    for (int i = 0; i < 128; i++) {
+        ans.push_back(tp.submit(g, i, 128 - i));
     }
 
     tp.close();
-    // std::this_thread::sleep_for(std::chrono::seconds(12));
-    // return 0;
-    tmp = time(0);
-    std::cout << "Main: closed!" << ctime(&tmp);
     for (auto& i : ans) {
         std::cout << i.get() << "\n";
     }
-    tmp = time(0);
-    std::cout << "Main: all Completed!" << ctime(&tmp);
 }
